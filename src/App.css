@@ -1,0 +1,62 @@
+.app-boot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  min-height: 100dvh;
+  padding: var(--space-8);
+  text-align: center;
+}
+
+.app-boot__pulse {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  opacity: 0.9;
+  animation: app-boot-pulse 1.4s var(--ease-in-out) infinite;
+}
+
+@keyframes app-boot-pulse {
+  0%,
+  100% {
+    transform: scale(0.8);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-boot__pulse {
+    animation: none;
+  }
+}
+
+.app-boot__title {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+
+.app-boot__detail {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  max-width: 28ch;
+}
+
+.app-boot__retry {
+  min-height: var(--tap-target);
+  padding: 0 var(--space-6);
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  color: var(--text-inverse);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  font-family: inherit;
+  cursor: pointer;
+}
