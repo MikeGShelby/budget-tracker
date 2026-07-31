@@ -1,0 +1,154 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Button
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.btn {
+  --btn-height: var(--tap-target);
+  --btn-pad: var(--space-5);
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+
+  min-height: var(--btn-height);
+  padding: 0 var(--btn-pad);
+
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  line-height: 1;
+  white-space: nowrap;
+
+  -webkit-user-select: none;
+  user-select: none;
+
+  transition:
+    transform var(--duration-fast) var(--ease-spring),
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out);
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn__label {
+  /* Optical centring: the round caps on a leading icon sit low otherwise. */
+  display: inline-block;
+  transform: translateY(-0.5px);
+}
+
+.btn__icon {
+  flex: none;
+}
+
+/* ── Sizes ─────────────────────────────────────────────────────────────── */
+
+.btn--sm {
+  --btn-height: 34px;
+  --btn-pad: var(--space-3);
+  font-size: var(--text-sm);
+  gap: var(--space-1);
+}
+
+.btn--md {
+  --btn-height: var(--tap-target);
+  --btn-pad: var(--space-5);
+}
+
+.btn--lg {
+  --btn-height: 54px;
+  --btn-pad: var(--space-6);
+  font-size: var(--text-md);
+}
+
+.btn--block {
+  width: 100%;
+}
+
+.btn--icon {
+  --btn-pad: 0;
+  width: var(--btn-height);
+}
+
+/* ── Variants ──────────────────────────────────────────────────────────── */
+
+.btn--primary {
+  color: var(--text-inverse);
+  background-color: var(--accent);
+  background-image: linear-gradient(180deg, var(--accent), var(--accent-strong));
+  box-shadow: var(--shadow-fab);
+}
+
+.btn--primary:active:not(:disabled) {
+  background-image: linear-gradient(180deg, var(--accent-strong), var(--accent-strong));
+  box-shadow: var(--shadow-sm);
+}
+
+.btn--secondary {
+  color: var(--text-primary);
+  background-color: var(--surface-3);
+  border-color: var(--border-subtle);
+}
+
+.btn--secondary:active:not(:disabled) {
+  background-color: var(--surface-raised);
+}
+
+.btn--ghost {
+  color: var(--text-secondary);
+  background-color: transparent;
+}
+
+.btn--ghost:active:not(:disabled) {
+  color: var(--text-primary);
+  background-color: var(--surface-2);
+}
+
+.btn--danger {
+  color: var(--expense);
+  background-color: var(--expense-dim);
+  border-color: var(--expense-glow);
+}
+
+.btn--danger:active:not(:disabled) {
+  background-color: var(--expense-glow);
+  color: var(--text-primary);
+}
+
+/* Pointer devices get hover as an enhancement only — never as the sole cue. */
+@media (hover: hover) and (pointer: fine) {
+  .btn--secondary:hover:not(:disabled) {
+    background-color: var(--surface-raised);
+    border-color: var(--border-default);
+  }
+
+  .btn--ghost:hover:not(:disabled) {
+    color: var(--text-primary);
+    background-color: var(--surface-2);
+  }
+
+  .btn--primary:hover:not(:disabled) {
+    background-image: linear-gradient(180deg, var(--accent), var(--accent));
+  }
+
+  .btn--danger:hover:not(:disabled) {
+    border-color: var(--expense);
+  }
+}
