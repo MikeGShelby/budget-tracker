@@ -53,6 +53,36 @@ export function formatMoney(minor: number, options: FormatMoneyOptions = {}): st
   return formatted
 }
 
+/**
+ * Balance label for a calendar day cell.
+ *
+ * A day column is roughly 50px wide, which fits about six glyphs. "$4,499.63"
+ * does not fit and silently blows the grid out; the exact figure is one tap
+ * away in the day sheet, so the cell trades precision for legibility:
+ *   under $1,000 -> whole dollars ($641)
+ *   at or above  -> one decimal, compacted ($4.5K)
+ */
+export function formatMoneyCell(minor: number, options: FormatMoneyOptions = {}): string {
+  const { locale = 'en-US', currency = 'USD' } = options
+  const abs = Math.abs(minor)
+
+  const formatted =
+    abs < 100_000
+      ? new Intl.NumberFormat(locale, {
+          style: 'currency',
+          currency,
+          maximumFractionDigits: 0,
+        }).format(abs / 100)
+      : new Intl.NumberFormat(locale, {
+          style: 'currency',
+          currency,
+          notation: 'compact',
+          maximumFractionDigits: 1,
+        }).format(abs / 100)
+
+  return minor < 0 ? `-${formatted}` : formatted
+}
+
 /** Shortened form for tight calendar cells: $1.2k, $14.5k, $980. */
 export function formatMoneyCompact(minor: number, options: FormatMoneyOptions = {}): string {
   const { locale = 'en-US', currency = 'USD', signDisplay = false } = options

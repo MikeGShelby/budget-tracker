@@ -1,0 +1,139 @@
+.daycell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Centred rather than top-aligned: a balance calendar carries two or three
+     glyphs per day, so anchoring them to the top leaves each cell looking
+     half-empty. */
+  justify-content: center;
+  gap: 2px;
+  padding: 4px 2px;
+  min-height: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-primary);
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.daycell:active {
+  transform: scale(0.94);
+}
+
+/* Days with money moving get a faint lift so the month reads at a glance. */
+.daycell--change {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.daycell--muted .daycell__num {
+  color: var(--text-tertiary);
+}
+
+.daycell--muted .daycell__balance {
+  opacity: 0.45;
+}
+
+/* ── Day number ──────────────────────────────────────────────────────────── */
+.daycell__num {
+  display: grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.daycell--today .daycell__num {
+  background: var(--accent);
+  color: var(--text-inverse);
+  font-weight: var(--weight-bold);
+}
+
+.daycell--selected:not(.daycell--today) .daycell__num {
+  box-shadow: inset 0 0 0 1.5px var(--border-strong);
+}
+
+.daycell--selected {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* ── Balance ─────────────────────────────────────────────────────────────── */
+.daycell__balance {
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.1;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Reserves the row so cells with and without a balance stay the same height. */
+.daycell__balance--empty {
+  min-height: 12px;
+}
+
+.daycell__balance--up {
+  color: var(--income);
+}
+
+.daycell__balance--down {
+  color: var(--text-secondary);
+}
+
+.daycell__balance--negative {
+  color: var(--expense);
+}
+
+/* ── Event dots ──────────────────────────────────────────────────────────── */
+.daycell__dots {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 5px;
+}
+
+.daycell__dot {
+  width: 4px;
+  height: 4px;
+  border-radius: var(--radius-full);
+}
+
+.daycell__more {
+  font-size: 8px;
+  font-weight: var(--weight-semibold);
+  color: var(--text-tertiary);
+  line-height: 1;
+}
+
+/* ── Overdraft ───────────────────────────────────────────────────────────── */
+.daycell--overdrawn {
+  background: var(--expense-dim);
+  box-shadow: inset 0 0 0 1px rgba(255, 107, 122, 0.28);
+}
+
+.daycell__alert {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  display: grid;
+  place-items: center;
+  color: var(--expense);
+}
+
+.daycell:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
