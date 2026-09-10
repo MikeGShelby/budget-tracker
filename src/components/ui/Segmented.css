@@ -1,0 +1,90 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Segmented — iOS-style control with a sliding pill.
+   `--seg-accent` is set inline by the component (defaults to --accent).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.segmented {
+  --seg-accent: var(--accent);
+
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: var(--space-1);
+
+  padding: var(--space-1);
+  background-color: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+}
+
+.segmented__option {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  /* 38 + 2×4 padding + 2 borders = 48px control height. */
+  min-height: 38px;
+  padding: 0 var(--space-3);
+
+  border: none;
+  border-radius: var(--radius-full);
+  background-color: transparent;
+
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-secondary);
+  white-space: nowrap;
+
+  -webkit-user-select: none;
+  user-select: none;
+
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-spring);
+}
+
+.segmented__option:active {
+  transform: scale(0.97);
+}
+
+.segmented__option[aria-checked='true'] {
+  color: var(--seg-accent);
+}
+
+.segmented__indicator {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
+
+  /* Fallback first for engines without color-mix. */
+  background-color: var(--surface-raised);
+  background-color: color-mix(in srgb, var(--seg-accent) 20%, var(--surface-raised));
+  border: 1px solid var(--border-subtle);
+  border-color: color-mix(in srgb, var(--seg-accent) 34%, transparent);
+}
+
+.segmented__content {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  pointer-events: none;
+}
+
+/* The focus ring belongs on the pill, not the whole group. */
+.segmented__option:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .segmented__option[aria-checked='false']:hover {
+    color: var(--text-primary);
+  }
+}

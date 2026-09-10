@@ -1,0 +1,66 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Only main can deploy. The github-pages environment refuses any other branch
+# ("not allowed to deploy to github-pages due to environment protection rules"),
+# so triggering this from a feature branch fails after a successful build.
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let two deploys race; queue them and keep the newest.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      # A broken projection engine is worse than a stale site, so a failing
+      # suite blocks the deploy.
+      - run: npm test
+
+      - run: npm run build
+        env:
+          # Pages serves this repo from /budget-tracker/. On a root domain
+          # (Cloudflare Pages, a custom domain) drop this and the default '/'
+          # applies.
+          VITE_BASE_PATH: /budget-tracker/
+
+      # Pages must already be switched on for the repository:
+      #   Settings -> Pages -> Source: GitHub Actions
+      # This is a one-time manual step. `enablement: true` cannot replace it —
+      # creating a Pages site needs admin rights that the workflow's GITHUB_TOKEN
+      # does not have, so it fails with "Resource not accessible by integration".
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

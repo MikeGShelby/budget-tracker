@@ -1,0 +1,132 @@
+/**
+ * Design tokens — dark-first premium fintech.
+ *
+ * Every surface, colour, radius, shadow and easing in the app comes from here.
+ * Components must not hard-code hex values.
+ */
+
+:root {
+  color-scheme: dark;
+
+  /* ── Canvas & surfaces ─────────────────────────────────────────────── */
+  --bg-base: #08090d;
+  --bg-canvas: #0b0d12;
+  --surface-1: #12151d;
+  --surface-2: #171b25;
+  --surface-3: #1e2330;
+  --surface-raised: #232838;
+  --surface-glass: rgba(18, 21, 29, 0.72);
+  --surface-scrim: rgba(4, 5, 8, 0.68);
+
+  /* ── Hairlines ─────────────────────────────────────────────────────── */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  /* ── Text ──────────────────────────────────────────────────────────── */
+  --text-primary: #f2f5fb;
+  --text-secondary: #99a2b8;
+  --text-tertiary: #626b81;
+  --text-inverse: #0b0d12;
+
+  /* ── Ledger semantics ──────────────────────────────────────────────── */
+  --income: #35e5a0;
+  --income-dim: rgba(53, 229, 160, 0.14);
+  --income-glow: rgba(53, 229, 160, 0.34);
+
+  --expense: #ff6b7a;
+  --expense-dim: rgba(255, 107, 122, 0.14);
+  --expense-glow: rgba(255, 107, 122, 0.32);
+
+  --warning: #ffb454;
+  --warning-dim: rgba(255, 180, 84, 0.14);
+
+  /* ── Brand accent ──────────────────────────────────────────────────── */
+  --accent: #7d94ff;
+  --accent-strong: #5f78ff;
+  --accent-dim: rgba(125, 148, 255, 0.14);
+  --accent-glow: rgba(125, 148, 255, 0.4);
+
+  /* ── Type ──────────────────────────────────────────────────────────── */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter',
+    'Segoe UI', Roboto, system-ui, sans-serif;
+  /* Tabular figures keep balance columns from shifting as digits change. */
+  --font-numeric: 'SF Mono', ui-monospace, 'SF Pro Display', -apple-system, system-ui, sans-serif;
+
+  --text-2xs: 0.625rem;   /* 10px — day-cell metadata */
+  --text-xs: 0.6875rem;   /* 11px */
+  --text-sm: 0.8125rem;   /* 13px */
+  --text-base: 0.9375rem; /* 15px — iOS body */
+  --text-md: 1.0625rem;   /* 17px */
+  --text-lg: 1.375rem;    /* 22px */
+  --text-xl: 1.75rem;     /* 28px */
+  --text-2xl: 2.25rem;    /* 36px */
+  --text-3xl: 3rem;       /* 48px — hero balance */
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  --tracking-tight: -0.02em;
+  --tracking-tighter: -0.035em;
+  --tracking-wide: 0.06em;
+
+  /* ── Space ─────────────────────────────────────────────────────────── */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  /* ── Radii ─────────────────────────────────────────────────────────── */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-2xl: 28px;
+  --radius-full: 999px;
+
+  /* ── Elevation ─────────────────────────────────────────────────────── */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.55);
+  --shadow-sheet: 0 -8px 48px rgba(0, 0, 0, 0.6);
+  --shadow-fab: 0 8px 28px rgba(95, 120, 255, 0.45);
+
+  /* ── Motion ────────────────────────────────────────────────────────── */
+  /* iOS-like spring feel for sheets and the FAB. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 140ms;
+  --duration-base: 240ms;
+  --duration-slow: 380ms;
+
+  /* ── Layout ────────────────────────────────────────────────────────── */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  /* Apple HIG minimum comfortable target. */
+  --tap-target: 44px;
+  --header-height: 52px;
+  --content-max: 34rem;
+  --z-sheet: 60;
+  --z-scrim: 50;
+  --z-fab: 40;
+  --z-header: 30;
+}
+
+/* Respect the OS reduced-motion setting — required for App Store review. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 1ms;
+    --duration-base: 1ms;
+    --duration-slow: 1ms;
+  }
+}

@@ -1,0 +1,44 @@
+.monthgrid {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0 var(--space-3);
+  /* Keeps the floating action button clear of the final week's cells. */
+  padding-bottom: calc(var(--space-4) + var(--safe-bottom));
+}
+
+.monthgrid__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  padding: var(--space-2) 0 var(--space-1);
+}
+
+.monthgrid__weekday {
+  text-align: center;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.monthgrid__viewport {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  /* The month slides horizontally; nothing should leak past the edges. */
+  overflow: hidden;
+}
+
+.monthgrid__cells {
+  display: grid;
+  /* minmax(0, 1fr) — a bare 1fr floors at min-content, so a wide balance label
+     inside a cell pushes the seventh column off the screen. */
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  /* Always six equal rows so the grid height never changes between months. */
+  grid-template-rows: repeat(6, minmax(0, 1fr));
+  gap: 2px;
+  height: 100%;
+  touch-action: pan-y;
+}

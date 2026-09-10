@@ -1,0 +1,50 @@
+.calendar {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+  /* The grid flexes to fill whatever is left, so the whole month fits one
+     screen on a phone without the page itself scrolling. */
+  overflow: hidden;
+}
+
+.calendar__fab {
+  position: absolute;
+  right: var(--space-5);
+  bottom: calc(var(--space-5) + var(--safe-bottom));
+  z-index: var(--z-fab);
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: linear-gradient(180deg, var(--accent) 0%, var(--accent-strong) 100%);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-fab);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.calendar__fab:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 3px;
+}
+
+/* Below the fold on very short viewports, let the month scroll rather than
+   crushing the rows to an unreadable height. */
+@media (max-height: 620px) {
+  .calendar {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .monthgrid__cells {
+    grid-template-rows: repeat(6, minmax(58px, 1fr));
+  }
+}
