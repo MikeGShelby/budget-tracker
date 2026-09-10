@@ -1,0 +1,65 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      # Lets the site go live before this branch is merged. Drop this line once
+      # the branch lands on main.
+      - claude/budget-tracker-online-1wl6hb
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let two deploys race; queue them and keep the newest.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      # A broken projection engine is worse than a stale site, so a failing
+      # suite blocks the deploy.
+      - run: npm test
+
+      - run: npm run build
+        env:
+          # Pages serves this repo from /budget-tracker/. On a root domain
+          # (Cloudflare Pages, a custom domain) drop this and the default '/'
+          # applies.
+          VITE_BASE_PATH: /budget-tracker/
+
+      - uses: actions/configure-pages@v5
+        with:
+          # Turns Pages on automatically the first time, when the token allows
+          # it. If this step fails, enable it once by hand:
+          # Settings -> Pages -> Source: GitHub Actions.
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
