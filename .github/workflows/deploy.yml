@@ -4,10 +4,11 @@ on:
   push:
     branches:
       - main
-      # Lets the site go live before this branch is merged. Drop this line once
-      # the branch lands on main.
-      - claude/budget-tracker-online-1wl6hb
   workflow_dispatch:
+
+# Only main can deploy. The github-pages environment refuses any other branch
+# ("not allowed to deploy to github-pages due to environment protection rules"),
+# so triggering this from a feature branch fails after a successful build.
 
 permissions:
   contents: read
