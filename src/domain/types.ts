@@ -69,6 +69,13 @@ export interface Occurrence {
   categoryId: CategoryId
   /** True when this came from a repeating series rather than a one-off. */
   isRecurring: boolean
+  /** Set when this is a credit card payment rather than a `BudgetEvent`. */
+  cardId: string | null
+  /**
+   * True when the amount is not final: the statement is still open, or no
+   * balance was entered for this month and the last known one is assumed.
+   */
+  isEstimate: boolean
 }
 
 /** Everything the calendar needs to render one day cell. */
@@ -94,6 +101,65 @@ export interface Settings {
   locale: string
   /** 0 = Sunday, 1 = Monday. */
   weekStartsOn: 0 | 1
+}
+
+// ── Credit cards ────────────────────────────────────────────────────────────
+
+/** `yyyy-MM` — the month a card payment is due in. */
+export type MonthKey = string
+
+export type CardIssuer =
+  | 'chase'
+  | 'citi'
+  | 'fidelity'
+  | 'amex'
+  | 'capital-one'
+  | 'discover'
+  | 'bank-of-america'
+  | 'wells-fargo'
+  | 'us-bank'
+  | 'barclays'
+  | 'apple'
+  | 'other'
+
+/**
+ * `closed`: the statement has been issued, so the amount is final.
+ * `open`: the cycle is still running and the amount will keep growing.
+ */
+export type StatementStatus = 'closed' | 'open'
+
+export interface CardStatement {
+  /** Full balance to pay, positive minor units. Cards are paid in full. */
+  amountMinor: number
+  status: StatementStatus
+  /** Where the number came from; `linked` is a bank connection such as Plaid. */
+  source: 'manual' | 'linked'
+  updatedAt: string
+}
+
+/**
+ * A credit card paid in full every month on a fixed day.
+ *
+ * Rather than one event per month, a card holds one amount per due month and
+ * the projection turns those into payments. Updating a balance is then a single
+ * edit on the card instead of hunting the calendar for that month's event.
+ */
+export interface CreditCard {
+  id: string
+  name: string
+  issuer: CardIssuer
+  /** Last four digits, to tell several cards from one bank apart. `''` if unset. */
+  last4: string
+  /** Day of month payment is due, 1–31. Clamps to the last day of short months. */
+  dueDay: number
+  /** Day of month the statement closes, 1–31, or `null` when not known. */
+  closingDay: number | null
+  /** Payment owed per due month. A month with no entry reuses the last known one. */
+  statements: Record<MonthKey, CardStatement>
+  /** The bank connection's account id once linked; `null` for manual cards. */
+  linkedAccountId: string | null
+  createdAt: string
+  updatedAt: string
 }
 
 /** Category ids are a closed set so stored data stays valid across releases. */

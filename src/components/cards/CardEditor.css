@@ -1,0 +1,119 @@
+.cardeditor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.cardeditor__preview {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-2) 0 var(--space-1);
+}
+
+.cardeditor__group {
+  margin: 0;
+  padding: 0;
+  border: none;
+  min-width: 0;
+}
+
+.cardeditor__legend {
+  display: block;
+  margin-bottom: var(--space-2);
+  padding: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.cardeditor__issuers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.cardeditor__issuer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.cardeditor__issuer--on {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--text-primary);
+}
+
+.cardeditor__issuer:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.cardeditor__issuer-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-full);
+}
+
+.cardeditor__days {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.cardeditor__select-field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cardeditor__select {
+  width: 100%;
+  min-height: var(--tap-target);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--text-primary);
+  font-family: inherit;
+  /* 17px keeps iOS from zooming the page when the picker opens. */
+  font-size: var(--text-md);
+}
+
+.cardeditor__hint {
+  margin: calc(var(--space-2) * -1) 0 0;
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--text-tertiary);
+}
+
+.cardeditor__footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.cardeditor__warning {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  color: var(--text-secondary);
+  text-align: center;
+}

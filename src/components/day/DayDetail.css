@@ -109,3 +109,7 @@
 .daydetail__amount--out {
   color: var(--text-primary);
 }
+
+.daydetail__amount--estimate {
+  color: var(--text-secondary);
+}

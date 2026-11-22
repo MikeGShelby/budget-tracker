@@ -78,13 +78,22 @@ function DayCellBase({
       )}
 
       <span className="daycell__dots" aria-hidden="true">
-        {occurrences.slice(0, MAX_DOTS).map((occurrence) => (
-          <span
-            key={occurrence.key}
-            className="daycell__dot"
-            style={{ background: `oklch(0.74 0.16 ${getCategory(occurrence.categoryId).hue})` }}
-          />
-        ))}
+        {occurrences.slice(0, MAX_DOTS).map((occurrence) => {
+          const color = `oklch(0.74 0.16 ${getCategory(occurrence.categoryId).hue})`
+          // An estimate is drawn as a ring rather than a filled dot: the
+          // payment is coming, but its amount isn't final yet.
+          return (
+            <span
+              key={occurrence.key}
+              className="daycell__dot"
+              style={
+                occurrence.isEstimate
+                  ? { boxShadow: `inset 0 0 0 1.25px ${color}` }
+                  : { background: color }
+              }
+            />
+          )
+        })}
         {occurrences.length > MAX_DOTS ? (
           <span className="daycell__more">+{occurrences.length - MAX_DOTS}</span>
         ) : null}

@@ -2,7 +2,8 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  height: 100dvh;
+  /* Fills the screen area above the tab bar, which owns the bottom safe area. */
+  height: 100%;
   max-width: var(--content-max);
   margin: 0 auto;
   padding-left: var(--safe-left);
@@ -15,7 +16,7 @@
 .calendar__fab {
   position: absolute;
   right: var(--space-5);
-  bottom: calc(var(--space-5) + var(--safe-bottom));
+  bottom: var(--space-4);
   z-index: var(--z-fab);
   display: grid;
   place-items: center;
@@ -40,7 +41,7 @@
 @media (max-height: 620px) {
   .calendar {
     height: auto;
-    min-height: 100dvh;
+    min-height: 100%;
     overflow: visible;
   }
 

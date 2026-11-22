@@ -5,7 +5,7 @@
   min-height: 0;
   padding: 0 var(--space-3);
   /* Keeps the floating action button clear of the final week's cells. */
-  padding-bottom: calc(var(--space-4) + var(--safe-bottom));
+  padding-bottom: var(--space-3);
 }
 
 .monthgrid__weekdays {

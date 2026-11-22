@@ -13,9 +13,10 @@
  * All arithmetic is integer minor units. There is no floating point anywhere in
  * this file, so a thousand additions of 3,333 cents is exactly 3,333,000.
  */
+import { cardOccurrencesInRange } from './cards'
 import { addDays, eachDay } from './dates'
 import { occurrencesInRange } from './recurrence'
-import type { BudgetEvent, DayProjection, IsoDate, Occurrence, Settings } from './types'
+import type { BudgetEvent, CreditCard, DayProjection, IsoDate, Occurrence, Settings } from './types'
 
 export interface RangeProjection {
   from: IsoDate
@@ -45,8 +46,9 @@ export function projectRange(
   settings: Settings,
   from: IsoDate,
   to: IsoDate,
+  cards: CreditCard[] = [],
 ): RangeProjection {
-  const openingBalanceMinor = balanceOn(events, settings, addDays(from, -1))
+  const openingBalanceMinor = balanceOn(events, settings, addDays(from, -1), cards)
 
   // Degenerate window: report the opening balance and an empty day map rather
   // than throwing, so a caller mid-navigation can't crash the calendar.
@@ -68,9 +70,9 @@ export function projectRange(
   // day's occurrences and the balance always carry.
   const effectiveFrom = maxDate(from, settings.startingBalanceDate)
   const byDate =
-    events.length === 0 || effectiveFrom > to
+    (events.length === 0 && cards.length === 0) || effectiveFrom > to
       ? EMPTY_BUCKETS
-      : collectByDate(events, effectiveFrom, to)
+      : collectByDate(events, cards, effectiveFrom, to)
 
   const days = new Map<IsoDate, DayProjection>()
   let running = openingBalanceMinor
@@ -117,10 +119,15 @@ export function projectRange(
  * we have no information about that stretch of history, so the line is flat
  * rather than fabricated.
  */
-export function balanceOn(events: BudgetEvent[], settings: Settings, date: IsoDate): number {
+export function balanceOn(
+  events: BudgetEvent[],
+  settings: Settings,
+  date: IsoDate,
+  cards: CreditCard[] = [],
+): number {
   const base = settings.startingBalanceMinor
   if (date < settings.startingBalanceDate) return base
-  if (events.length === 0) return base
+  if (events.length === 0 && cards.length === 0) return base
 
   let total = base
   for (const event of events) {
@@ -128,6 +135,12 @@ export function balanceOn(events: BudgetEvent[], settings: Settings, date: IsoDa
     if (count === 0) continue
     // Multiply rather than accumulate: same integer result, one operation.
     total += count * signedMinorFor(event)
+  }
+  // Card payments vary month to month, so they are summed one by one.
+  for (const card of cards) {
+    for (const payment of cardOccurrencesInRange(card, settings.startingBalanceDate, date)) {
+      total += payment.signedMinor
+    }
   }
   return total
 }
@@ -138,11 +151,16 @@ export function balanceOn(events: BudgetEvent[], settings: Settings, date: IsoDa
  * Unlike `projectRange` this is a raw calendar query — it takes no `Settings`
  * and therefore applies no starting-balance cutoff.
  */
-export function occurrencesOn(events: BudgetEvent[], date: IsoDate): Occurrence[] {
+export function occurrencesOn(
+  events: BudgetEvent[],
+  date: IsoDate,
+  cards: CreditCard[] = [],
+): Occurrence[] {
   const out: Occurrence[] = []
   for (const event of events) {
     if (occurrencesInRange(event, date, date).length > 0) out.push(toOccurrence(event, date))
   }
+  for (const card of cards) out.push(...cardOccurrencesInRange(card, date, date))
   return out.sort(compareOccurrences)
 }
 
@@ -176,6 +194,8 @@ function toOccurrence(event: BudgetEvent, date: IsoDate): Occurrence {
     signedMinor: signedMinorFor(event),
     categoryId: event.categoryId,
     isRecurring: (event.recurrence?.frequency ?? 'once') !== 'once',
+    cardId: null,
+    isEstimate: false,
   }
 }
 
@@ -194,18 +214,22 @@ function compareOccurrences(a: Occurrence, b: Occurrence): number {
 
 function collectByDate(
   events: BudgetEvent[],
+  cards: CreditCard[],
   from: IsoDate,
   to: IsoDate,
 ): Map<IsoDate, Occurrence[]> {
   const byDate = new Map<IsoDate, Occurrence[]>()
+  const add = (occurrence: Occurrence): void => {
+    const bucket = byDate.get(occurrence.date)
+    if (bucket) bucket.push(occurrence)
+    else byDate.set(occurrence.date, [occurrence])
+  }
 
   for (const event of events) {
-    for (const date of occurrencesInRange(event, from, to)) {
-      const occurrence = toOccurrence(event, date)
-      const bucket = byDate.get(date)
-      if (bucket) bucket.push(occurrence)
-      else byDate.set(date, [occurrence])
-    }
+    for (const date of occurrencesInRange(event, from, to)) add(toOccurrence(event, date))
+  }
+  for (const card of cards) {
+    for (const payment of cardOccurrencesInRange(card, from, to)) add(payment)
   }
 
   for (const bucket of byDate.values()) bucket.sort(compareOccurrences)

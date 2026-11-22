@@ -29,6 +29,7 @@ export function CalendarScreen({
   onOpenSettings,
 }: CalendarScreenProps): ReactElement {
   const events = useBudgetStore((s) => s.events)
+  const cards = useBudgetStore((s) => s.cards)
   const settings = useBudgetStore((s) => s.settings)
 
   const today = todayIso()
@@ -38,13 +39,13 @@ export function CalendarScreen({
 
   // Month totals for the hero, plus the balance on whichever day is selected.
   const monthSummary = useMemo(
-    () => projectRange(events, settings, startOfMonth(monthAnchor), endOfMonth(monthAnchor)),
-    [events, settings, monthAnchor],
+    () => projectRange(events, settings, startOfMonth(monthAnchor), endOfMonth(monthAnchor), cards),
+    [events, cards, settings, monthAnchor],
   )
 
   const heroBalance = useMemo(
-    () => projectRange(events, settings, selectedDate, selectedDate).closingBalanceMinor,
-    [events, settings, selectedDate],
+    () => projectRange(events, settings, selectedDate, selectedDate, cards).closingBalanceMinor,
+    [events, cards, settings, selectedDate],
   )
 
   const shiftMonth = useCallback((delta: number) => {
@@ -97,6 +98,7 @@ export function CalendarScreen({
         monthAnchor={monthAnchor}
         selectedDate={selectedDate}
         events={events}
+        cards={cards}
         settings={settings}
         direction={direction}
         onSelectDay={handleSelectDay}
