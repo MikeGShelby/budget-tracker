@@ -4,7 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import type { PanInfo } from 'motion/react'
 import { isSameMonth, monthGridDates, todayIso, weekdayLabels } from '../../domain/dates'
 import { projectRange } from '../../domain/projection'
-import type { BudgetEvent, IsoDate, Settings } from '../../domain/types'
+import type { BudgetEvent, CreditCard, IsoDate, Settings } from '../../domain/types'
 import { DayCell } from './DayCell'
 import './MonthGrid.css'
 
@@ -12,6 +12,7 @@ export interface MonthGridProps {
   monthAnchor: IsoDate
   selectedDate: IsoDate
   events: BudgetEvent[]
+  cards: CreditCard[]
   settings: Settings
   /** +1 when moving to a later month, -1 earlier. Drives the slide direction. */
   direction: number
@@ -26,6 +27,7 @@ export function MonthGrid({
   monthAnchor,
   selectedDate,
   events,
+  cards,
   settings,
   direction,
   onSelectDay,
@@ -45,8 +47,8 @@ export function MonthGrid({
     const from = dates[0]
     const to = dates[dates.length - 1]
     if (!from || !to) return null
-    return projectRange(events, settings, from, to)
-  }, [dates, events, settings])
+    return projectRange(events, settings, from, to, cards)
+  }, [dates, events, cards, settings])
 
   const weekdays = useMemo(
     () => weekdayLabels(settings.weekStartsOn, settings.locale),

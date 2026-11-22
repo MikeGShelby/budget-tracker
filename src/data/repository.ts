@@ -1,4 +1,4 @@
-import type { BudgetEvent, Settings } from '../domain/types'
+import type { BudgetEvent, CreditCard, Settings } from '../domain/types'
 
 /**
  * Persistence boundary.
@@ -12,6 +12,10 @@ export interface BudgetRepository {
   putEvent(event: BudgetEvent): Promise<void>
   putEvents(events: BudgetEvent[]): Promise<void>
   deleteEvent(id: string): Promise<void>
+
+  listCards(): Promise<CreditCard[]>
+  putCard(card: CreditCard): Promise<void>
+  deleteCard(id: string): Promise<void>
 
   getSettings(): Promise<Settings | null>
   putSettings(settings: Settings): Promise<void>

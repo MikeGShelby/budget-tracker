@@ -13,13 +13,20 @@
  * to memory and pretending the data is safe on disk.
  */
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
-import type { BudgetEvent, Settings } from '../domain/types'
+import type { BudgetEvent, CreditCard, Settings } from '../domain/types'
 import type { BudgetRepository } from './repository'
 
 const DB_NAME = 'ledger'
-const DB_VERSION = 1
+/**
+ * v1: events, settings.
+ * v2: adds cards. Upgrades are additive only — every step creates what is
+ * missing and never deletes or rewrites existing stores, so a v1 database
+ * keeps all of its events and settings.
+ */
+const DB_VERSION = 2
 const EVENTS_STORE = 'events'
 const SETTINGS_STORE = 'settings'
+const CARDS_STORE = 'cards'
 const SETTINGS_KEY = 'app'
 const START_DATE_INDEX = 'startDate'
 
@@ -40,11 +47,16 @@ interface LedgerSchema extends DBSchema {
     key: string
     value: Settings
   }
+  cards: {
+    key: string
+    value: CreditCard
+  }
 }
 
 // ── In-memory fallback ──────────────────────────────────────────────────────
 
 const memoryEvents = new Map<string, BudgetEvent>()
+const memoryCards = new Map<string, CreditCard>()
 let memorySettings: Settings | null = null
 
 /**
@@ -75,6 +87,15 @@ const memoryRepository: BudgetRepository = {
   async deleteEvent(id) {
     memoryEvents.delete(id)
   },
+  async listCards() {
+    return [...memoryCards.values()].map(clone)
+  },
+  async putCard(card) {
+    memoryCards.set(card.id, clone(card))
+  },
+  async deleteCard(id) {
+    memoryCards.delete(id)
+  },
   async getSettings() {
     return memorySettings === null ? null : clone(memorySettings)
   },
@@ -83,6 +104,7 @@ const memoryRepository: BudgetRepository = {
   },
   async clear() {
     memoryEvents.clear()
+    memoryCards.clear()
     memorySettings = null
   },
 }
@@ -123,6 +145,9 @@ async function openLedgerDb(): Promise<IDBPDatabase<LedgerSchema> | null> {
           if (!db.objectStoreNames.contains(SETTINGS_STORE)) {
             // Out-of-line key: exactly one record, under SETTINGS_KEY.
             db.createObjectStore(SETTINGS_STORE)
+          }
+          if (!db.objectStoreNames.contains(CARDS_STORE)) {
+            db.createObjectStore(CARDS_STORE, { keyPath: 'id' })
           }
         },
         blocked() {
@@ -188,6 +213,24 @@ export const repository: BudgetRepository = {
     await db.delete(EVENTS_STORE, id)
   },
 
+  async listCards(): Promise<CreditCard[]> {
+    const db = await getDb()
+    if (db === null) return memoryRepository.listCards()
+    return db.getAll(CARDS_STORE)
+  },
+
+  async putCard(card: CreditCard): Promise<void> {
+    const db = await getDb()
+    if (db === null) return memoryRepository.putCard(card)
+    await db.put(CARDS_STORE, card)
+  },
+
+  async deleteCard(id: string): Promise<void> {
+    const db = await getDb()
+    if (db === null) return memoryRepository.deleteCard(id)
+    await db.delete(CARDS_STORE, id)
+  },
+
   async getSettings(): Promise<Settings | null> {
     const db = await getDb()
     if (db === null) return memoryRepository.getSettings()
@@ -208,10 +251,11 @@ export const repository: BudgetRepository = {
     const db = await getDb()
     if (db === null) return
 
-    const tx = db.transaction([EVENTS_STORE, SETTINGS_STORE], 'readwrite')
+    const tx = db.transaction([EVENTS_STORE, SETTINGS_STORE, CARDS_STORE], 'readwrite')
     await Promise.all([
       tx.objectStore(EVENTS_STORE).clear(),
       tx.objectStore(SETTINGS_STORE).clear(),
+      tx.objectStore(CARDS_STORE).clear(),
       tx.done,
     ])
   },

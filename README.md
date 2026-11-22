@@ -28,6 +28,12 @@ the 10th and the 10th reads **$1,500**.
 - **Repeating events** — weekly, every two weeks, twice a month, monthly and
   yearly, with an optional end date. A rule anchored on the 31st fires on
   Feb 28 and then returns to the 31st in March rather than drifting.
+- **Credit cards** — add each card once with its due day. Its payment appears
+  on the calendar every month, and the **Cards** tab lists every card's next
+  payment so a balance is one tap to update. Cards are paid in full, so the
+  payment is the statement balance. A month you haven't entered yet reuses the
+  last known balance as an estimate, and a card is flagged once its statement
+  has closed without a final number.
 - **Categories** — mortgage, rent, credit card, utilities, groceries, paycheck
   and more, each with its own icon and colour.
 - **Local-first** — everything is stored on your device with IndexedDB. There is
@@ -99,7 +105,18 @@ Two rules hold throughout:
    Greenwich — that would move a paycheck to the wrong date, so every conversion
    goes through `src/domain/dates.ts`.
 
-The projection engine is covered by 99 tests, verified across seven timezones.
+The projection engine is covered by tests verified across seven timezones,
+alongside tests for card payments and for upgrading an existing on-device
+database without losing data.
+
+### Bank connections (planned)
+
+`applyLiabilitySnapshot` in `src/domain/cards.ts` already turns what a bank
+connection reports for a card (statement balance, statement date, due date,
+current balance, last payment) into the card's monthly payments: the issued
+statement becomes the final amount due, and charges since then become an
+estimate for the following due date. Connecting a service such as Plaid needs a
+small server to hold its keys, which this local-only app doesn't have yet.
 
 ## License
 

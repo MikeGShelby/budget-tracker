@@ -2,12 +2,13 @@ import { useMemo } from 'react'
 import type { ReactElement } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { useBudgetStore } from '../../data/store'
+import { getIssuer, monthKeyOf } from '../../domain/cards'
 import { getCategory } from '../../domain/categories'
 import { formatDayTitle } from '../../domain/dates'
 import { formatMoney } from '../../domain/money'
 import { balanceOn, occurrencesOn } from '../../domain/projection'
 import { describeRecurrence } from '../../domain/recurrence'
-import type { BudgetEvent, IsoDate } from '../../domain/types'
+import type { BudgetEvent, IsoDate, MonthKey } from '../../domain/types'
 import { EmptyState } from '../common/EmptyState'
 import { Button } from '../ui/Button'
 import { Icon } from '../ui/Icon'
@@ -20,6 +21,7 @@ export interface DayDetailProps {
   date: IsoDate
   onEditEvent: (event: BudgetEvent) => void
   onAddEvent: (date: IsoDate) => void
+  onOpenCard: (cardId: string, month: MonthKey) => void
 }
 
 export function DayDetail({
@@ -28,21 +30,27 @@ export function DayDetail({
   date,
   onEditEvent,
   onAddEvent,
+  onOpenCard,
 }: DayDetailProps): ReactElement {
   const events = useBudgetStore((s) => s.events)
+  const cards = useBudgetStore((s) => s.cards)
   const settings = useBudgetStore((s) => s.settings)
   const reduceMotion = useReducedMotion()
 
   const { locale, currency } = settings
 
-  const occurrences = useMemo(() => occurrencesOn(events, date), [events, date])
-  const balance = useMemo(() => balanceOn(events, settings, date), [events, settings, date])
+  const occurrences = useMemo(() => occurrencesOn(events, date, cards), [events, cards, date])
+  const balance = useMemo(
+    () => balanceOn(events, settings, date, cards),
+    [events, cards, settings, date],
+  )
   const delta = useMemo(
     () => occurrences.reduce((sum, o) => sum + o.signedMinor, 0),
     [occurrences],
   )
 
   const eventsById = useMemo(() => new Map(events.map((e) => [e.id, e])), [events])
+  const cardsById = useMemo(() => new Map(cards.map((c) => [c.id, c])), [cards])
 
   const balanceText = formatMoney(balance, { locale, currency })
   const subtitle = `Projected balance ${balanceText}`
@@ -78,7 +86,15 @@ export function DayDetail({
           {occurrences.map((occurrence, index) => {
             const category = getCategory(occurrence.categoryId)
             const source = eventsById.get(occurrence.eventId)
+            const card = occurrence.cardId ? cardsById.get(occurrence.cardId) : undefined
             const income = occurrence.signedMinor > 0
+            // Card payments take their colour from the bank, so several cards
+            // due the same day stay distinguishable.
+            const hue = card ? getIssuer(card.issuer).hue : category.hue
+            const open = (): void => {
+              if (card) onOpenCard(card.id, monthKeyOf(occurrence.date))
+              else if (source) onEditEvent(source)
+            }
 
             return (
               <motion.li
@@ -94,24 +110,29 @@ export function DayDetail({
                 <button
                   type="button"
                   className="daydetail__row u-pressable"
-                  onClick={() => source && onEditEvent(source)}
-                  disabled={!source}
+                  onClick={open}
+                  disabled={!source && !card}
                 >
                   <span
                     className="daydetail__icon"
                     style={{
-                      background: `oklch(0.72 0.15 ${category.hue} / 0.18)`,
-                      color: `oklch(0.8 0.15 ${category.hue})`,
+                      background: `oklch(0.72 0.15 ${hue} / 0.18)`,
+                      color: `oklch(0.8 0.15 ${hue})`,
                     }}
                     aria-hidden="true"
                   >
-                    <Icon name={category.icon as never} size={18} />
+                    <Icon name={card ? 'card' : (category.icon as never)} size={18} />
                   </span>
 
                   <span className="daydetail__text">
                     <span className="daydetail__title">{occurrence.title}</span>
                     <span className="daydetail__meta">
-                      {occurrence.isRecurring && source ? (
+                      {card ? (
+                        <>
+                          <Icon name="card" size={11} strokeWidth={2} />
+                          {occurrence.isEstimate ? 'Card payment · estimate' : 'Card payment · final'}
+                        </>
+                      ) : occurrence.isRecurring && source ? (
                         <>
                           <Icon name="repeat" size={11} strokeWidth={2} />
                           {describeRecurrence(source)}
@@ -123,8 +144,11 @@ export function DayDetail({
                   </span>
 
                   <span
-                    className={`daydetail__amount u-tabular${income ? ' daydetail__amount--in' : ' daydetail__amount--out'}`}
+                    className={`daydetail__amount u-tabular${income ? ' daydetail__amount--in' : ' daydetail__amount--out'}${
+                      occurrence.isEstimate ? ' daydetail__amount--estimate' : ''
+                    }`}
                   >
+                    {occurrence.isEstimate ? '≈ ' : ''}
                     {formatMoney(occurrence.signedMinor, { locale, currency, signDisplay: true })}
                   </span>
                 </button>

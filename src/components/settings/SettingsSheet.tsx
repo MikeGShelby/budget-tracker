@@ -105,7 +105,7 @@ export function SettingsSheet({ open, onClose }: SettingsSheetProps): ReactEleme
           {confirmReset ? (
             <>
               <p className="settings__hint">
-                This permanently deletes every event and resets your starting balance. It cannot be
+                This permanently deletes every event and card, and resets your starting balance. It cannot be
                 undone.
               </p>
               <Button

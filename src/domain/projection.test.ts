@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { addDays, eachDay } from './dates'
 import { balanceOn, occurrencesOn, projectRange } from './projection'
 import type { RangeProjection } from './projection'
-import type { BudgetEvent, CategoryId, DayProjection, IsoDate, Recurrence, RecurrenceFrequency, Settings } from './types'
+import type { BudgetEvent, CategoryId, CreditCard, DayProjection, IsoDate, Recurrence, RecurrenceFrequency, Settings } from './types'
 
 interface EventOverrides {
   startDate: IsoDate
@@ -160,6 +160,8 @@ describe('projectRange — day map coverage', () => {
       signedMinor: 1,
       categoryId: 'other-income',
       isRecurring: false,
+      cardId: null,
+      isEstimate: false,
     })
     expect(dayAt(projection, '2026-02-02').occurrences).toHaveLength(0)
   })
@@ -612,5 +614,71 @@ describe('projectRange — month-end rules on the calendar', () => {
     expect(dayAt(projection, '2026-03-28').hasChange).toBe(false)
     expect(dayAt(projection, '2026-03-31').hasChange).toBe(true)
     expect(projection.closingBalanceMinor).toBe(200_000)
+  })
+})
+
+describe('credit cards in the projection', () => {
+  const T = '2026-11-01T00:00:00.000Z'
+  const sapphire: CreditCard = {
+    id: 'sapphire',
+    name: 'Chase Sapphire',
+    issuer: 'chase',
+    last4: '',
+    dueDay: 15,
+    closingDay: null,
+    statements: {
+      '2026-12': { amountMinor: 84_210, status: 'closed', source: 'manual', updatedAt: T },
+    },
+    linkedAccountId: null,
+    createdAt: T,
+    updatedAt: T,
+  }
+
+  it('deducts a card payment on its due day and carries the new balance', () => {
+    const settings = makeSettings(300_000, '2026-12-01')
+    const p = projectRange([], settings, '2026-12-01', '2026-12-31', [sapphire])
+    expect(dayAt(p, '2026-12-14').balanceMinor).toBe(300_000)
+    expect(dayAt(p, '2026-12-15')).toMatchObject({ deltaMinor: -84_210, balanceMinor: 215_790, hasChange: true })
+    expect(dayAt(p, '2026-12-31').balanceMinor).toBe(215_790)
+    expect(p.totalExpenseMinor).toBe(84_210)
+  })
+
+  it('mixes card payments and events on the same day', () => {
+    const settings = makeSettings(0, '2026-12-01')
+    const pay = makeEvent({ id: 'pay', startDate: '2026-12-15', amountMinor: 200_000, direction: 'income' })
+    const p = projectRange([pay], settings, '2026-12-15', '2026-12-15', [sapphire])
+    const day = dayAt(p, '2026-12-15')
+    expect(day.occurrences.map((o) => o.cardId ?? o.eventId)).toEqual(['pay', 'sapphire'])
+    expect(day.deltaMinor).toBe(200_000 - 84_210)
+  })
+
+  it('applies the starting-balance cutoff to card payments too', () => {
+    // Known balance is as of Dec 16, after the payment already happened.
+    const settings = makeSettings(100_000, '2026-12-16')
+    expect(balanceOn([], settings, '2026-12-31', [sapphire])).toBe(100_000)
+    const p = projectRange([], settings, '2026-12-01', '2026-12-31', [sapphire])
+    expect(dayAt(p, '2026-12-15').occurrences).toEqual([])
+    // The carried-forward January estimate still counts.
+    expect(balanceOn([], settings, '2027-01-15', [sapphire])).toBe(100_000 - 84_210)
+  })
+
+  it('agrees with balanceOn on every day, across months of carried estimates', () => {
+    const settings = makeSettings(500_000, '2026-11-20')
+    const rent = makeEvent({ startDate: '2026-12-01', amountMinor: 185_000, direction: 'expense', frequency: 'monthly' })
+    const p = projectRange([rent], settings, '2026-11-20', '2027-04-30', [sapphire])
+    for (const [date, day] of p.days) {
+      expect(day.balanceMinor).toBe(balanceOn([rent], settings, date, [sapphire]))
+    }
+  })
+
+  it('lists a day’s card payment through occurrencesOn, flagged when estimated', () => {
+    expect(occurrencesOn([], '2026-12-15', [sapphire])[0]).toMatchObject({ cardId: 'sapphire', isEstimate: false })
+    expect(occurrencesOn([], '2027-01-15', [sapphire])[0]).toMatchObject({ cardId: 'sapphire', isEstimate: true })
+    expect(occurrencesOn([], '2027-01-14', [sapphire])).toEqual([])
+  })
+
+  it('marks ordinary events as neither card payments nor estimates', () => {
+    const e = makeEvent({ startDate: '2026-12-15', amountMinor: 1, direction: 'expense' })
+    expect(occurrencesOn([e], '2026-12-15')[0]).toMatchObject({ cardId: null, isEstimate: false })
   })
 })

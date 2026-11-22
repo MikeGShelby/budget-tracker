@@ -60,3 +60,31 @@
   font-family: inherit;
   cursor: pointer;
 }
+
+/* ── Shell: screen area above a fixed tab bar ─────────────────────────────── */
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.shell__screen {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Each view scrolls on its own, so the card list keeps its place when you
+   hop to the calendar and back. */
+.shell__view {
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* A class's `display` beats the browser's own [hidden] rule, so restate it. */
+.shell__view[hidden] {
+  display: none;
+}
